@@ -8,7 +8,7 @@ This package implements the one-step and two-step spline fitting with adaptive k
 To install the package from Github, please use
 
 ```
-`devtools::install_github('wangxf0106/vcmasf')`.
+devtools::install_github('wangxf0106/vcmasf').
 ```
 
 ## Examples
