@@ -1,0 +1,13 @@
+Package: vcmasf
+Type: Package
+Title: Varying Coefficient Modeling via Adaptive Spline Fitting
+Version: 1.0
+Date: 2021-12-20
+Author: Xufei Wang
+Maintainer: Xufei Wang <wangxf0106@gmail.com>
+Description: The package implements the one-step and two-step spline fitting with adaptive knots selection for varying coefficient modeling, as well as variable selection method for sparse high dimension problem.
+License: GPL (>= 2)
+Imports: Rcpp (>= 1.0.6)
+LinkingTo: Rcpp, RcppArmadillo
+LazyData: true
+RoxygenNote: 7.1.1

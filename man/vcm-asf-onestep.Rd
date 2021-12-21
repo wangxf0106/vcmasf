@@ -1,0 +1,45 @@
+\name{vcm.asf.onestep}
+\alias{vcm.asf.onestep}
+\title{One-step spline fitting with adaptive knots selection}
+\description{
+  This function estimates the varying coefficient by one-step spline fitting with adaptive knots selection.
+}
+\usage{
+vcm.asf.onestep(X, y, u, ms = ceiling(sqrt(length(y))), 
+                lambda0s=seq(0.1, 10, 0.1), boundary=NULL, 
+		degree=3)
+}
+\arguments{
+  \item{X}{a numeric matrix for predictors}
+  \item{y}{a numeric vector for response}
+  \item{u}{a numeric vector for conditioner}
+  \item{ms}{minimum size of slices}
+  \item{lambda0s}{a numeric vector for penalties}
+  \item{boundary}{bounds for conditioner u to construct splines}
+  \item{degree}{degree of splines}
+}
+\value{
+  The function returns a list with the following components
+  \item{knots}{a numeric vector of selected knots}
+  \item{coef}{a function that returns the varying coefficient given conditioner}
+  \item{predict}{a function that returns the fitted values given predictors and conditioner}
+  
+}
+\references{
+  See paper "Varying Coefficient Model via Adaptive Spline Fitting" for more details.
+}
+\examples{
+  n = 500
+  p = 2
+  X = matrix(rnorm(n * p), ncol = p)
+  u = runif(n)
+  B0 = matrix(0, nrow=n, ncol=p)
+  B0[,1] = sin(u * 2 * pi)
+  B0[,2] = cos(u * 2 * pi)
+  y = rowSums(X * B0) + rnorm(n)
+  fit = vcm.asf.onestep(X, y, u)
+  B = fit$coef(u)
+  f = fit$predict(X, u)
+}
+\author{Xufei Wang}
+

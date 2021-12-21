@@ -1,0 +1,7 @@
+useDynLib(vcmasf, .registration=TRUE)
+importFrom(Rcpp, evalCpp)
+exportPattern("^[[:alpha:]]+")
+import(splines2, pracma)
+export(vcm.asf.onestep)
+export(vcm.asf.twostep)
+export(vcm.variable.selection)
