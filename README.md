@@ -5,11 +5,13 @@ This package implements the one-step and two-step spline fitting with adaptive k
 
 ## Install the package 'vcmasf'
 
-To install the package from Github, please use
+The package requires `Rcpp`, `RcppArmadillo`, `splines`, `pracma` before installation. To install the package from Github, please use
 
 ```
 devtools::install_github('wangxf0106/vcmasf').
 ```
+
+When installing package on Mac, for error messages like `ld: library not found for -lgfortran`, you can follow [RCPP, RCPPARMADILLO AND OS X MAVERICKS "-LGFORTRAN" AND "-LQUADMATH" ERROR]{https://thecoatlessprofessor.com/programming/cpp/rcpp-rcpparmadillo-and-os-x-mavericks-lgfortran-and-lquadmath-error/} to install gfortran.
 
 ## Examples
 
