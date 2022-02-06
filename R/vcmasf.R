@@ -1,7 +1,7 @@
 knots.selection = function(X, y, u, ms = ceiling(sqrt(length(y))), lambda0 = 3.0) {
   n = dim(X)[1]
   p = dim(X)[2]
-  y = (y - mean(y)) / std(y)
+  y = (y - mean(y)) / sd(y)
   X = t(t(X) / sqrt(colMeans(X^2)))
   
   y = y[order(u)]
@@ -105,20 +105,29 @@ vcm.asf.twostep = function(X, y, u, ms = ceiling(sqrt(length(y))), lambda0s=seq(
     min_knots = c()
     for (j in 1:p) {
       residual = y - rowSums(fit) + fit[,j]
-      tmp = vcm.asf.onestep(matrix(X[,j], ncol=1), residual, u, ms, lambda0s, boundary, degree) 
-      base_spline = matrix(0, nrow=n, ncol=0)
-      for (k in 1:p) {
-        if (k == j)
-          base_spline = cbind(base_spline, bSpline(u, knots=tmp$knots, degree=degree, Boundary.knots=boundary, intercept=TRUE) * X[,j])
-        else
-          base_spline = cbind(base_spline, Splines[[k]])
-      }
-      tmp_lm = lm(y~base_spline-1)
-      bic = log(mean((y - tmp_lm$fitted.values) ** 2)) + dim(base_spline)[2] * log(n)/n
-      if (bic < min_bic) {
-        min_bic = bic
-        min_feature = j
-        min_knots = tmp$knots
+      prev = c()
+      for (lambda0 in lambda0s)
+      {
+        tmp = vcm.asf.onestep(matrix(X[,j], ncol=1), residual, u, ms, c(lambda0), boundary, degree) 
+        if (length(prev) == length(tmp$knots)) {
+          if (sum((prev - tmp$knots)^2) == 0)
+            next
+        }
+        prev = tmp$knots
+        base_spline = matrix(0, nrow=n, ncol=0)
+        for (k in 1:p) {
+          if (k == j)
+            base_spline = cbind(base_spline, bSpline(u, knots=tmp$knots, degree=degree, Boundary.knots=boundary, intercept=TRUE) * X[,j])
+          else
+            base_spline = cbind(base_spline, Splines[[k]])
+        }
+        tmp_lm = lm(y~base_spline-1)
+        bic = log(mean((y - tmp_lm$fitted.values) ** 2)) + dim(base_spline)[2] * log(n)/n
+        if (bic < min_bic) {
+          min_bic = bic
+          min_feature = j
+          min_knots = tmp$knots
+        }
       }
     }
     if (min_feature == 0)
@@ -178,6 +187,55 @@ vcm.asf.twostep = function(X, y, u, ms = ceiling(sqrt(length(y))), lambda0s=seq(
   }
   
   return(list(knots=knots_list, predict=predict, coef=coef))
+}
+
+vcm.asf.equidistant <- function(X, y, u, nknots=seq(1, 9), boundary=NULL, degree=3)
+{
+  if (is.null(boundary)) 
+    boundary = c(min(u), max(u))
+  k = length(nknots)
+  p = dim(X)[2]
+  n = length(y)
+  
+  bic_min = Inf
+  knots = NULL
+  fit = NULL
+  
+  for (i in 1:k) {
+    qs = seq(1, i) / (i+1)
+    tmp = quantile(u, qs)
+    uspline = bSpline(u, knots=tmp, degree=degree, Boundary.knots=boundary, intercept=TRUE)
+    bspline = matrix(0, nrow=n, ncol=0)
+    for (j in 1:p) 
+      bspline = cbind(bspline, X[,j] * uspline)
+    tmp_fit = lm(y ~ bspline-1)
+    bic = log(mean((y - tmp_fit$fitted.values) ** 2)) + dim(bspline)[2]*log(n) / n
+    if (bic < bic_min) {
+      bic_min = bic
+      knots = tmp
+      fit = tmp_fit
+    }
+  }
+  
+  predict <- function(Xnew, unew) {
+    uspline_new = bSpline(unew, knots=knots, degree=degree, Boundary.knots=boundary, intercept=TRUE)
+    bspline_new = matrix(0, nrow=length(unew), ncol=0)
+    for (j in 1:p)
+      bspline_new = cbind(bspline_new, Xnew[,j] * uspline_new)
+    return (c(bspline_new %*% fit$coefficients))
+  }
+  
+  coef <- function(unew) {
+    coefs = matrix(0, nrow=length(unew), ncol=p)
+    uspline_new = bSpline(unew, knots=knots, degree=degree, Boundary.knots=boundary, intercept=TRUE)
+    ps = dim(uspline_new)[2]
+    for (j in 1:p)
+      coefs[,j] = c(uspline_new %*% fit$coefficients[(1+(j-1)*ps):(j*ps)])
+    
+    return (coefs)
+  }
+  
+  return(list(knots=knots, predict=predict, coef=coef))
 }
 
 

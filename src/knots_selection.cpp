@@ -77,7 +77,6 @@ NumericVector knots_selection_cpp(NumericMatrix X, NumericVector y, int m, doubl
     Syy[i] = Syy[i-1] + y[i-1] * y[i-1];
     for (int j=0; j<l; j++) {
       SXy(i, j) = SXy(i-1, j) + X(i-1, j) * y[i-1];
-      SXX(i, j) = SXX(i-1, j) + X(i-1, j);
       for (int k=0; k<l; k++) 
         SXX(i, j*l+k) = SXX(i-1, j*l+k) + X(i-1, j) * X(i-1, k);
     }
