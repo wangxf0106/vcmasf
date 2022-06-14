@@ -8,7 +8,8 @@
 vcm.variable.selection(X, y, u, ms=ceiling(sqrt(length(y))), 
 		       lambda0s=seq(0.1, 10, 0.1), boundary=NULL, 
 		       degree=3, total_glasso_penalties=100, 
-		       tol=1e-8, max_iter=20)
+		       tol=1e-8, max_iter=20, lam_min_ratio=1e-3,
+               linear=TRUE, Knots=c())
 }
 \arguments{
   \item{X}{a numeric matrix for predictors}
@@ -21,9 +22,15 @@ vcm.variable.selection(X, y, u, ms=ceiling(sqrt(length(y))),
   \item{total_glasso_penalties}{total number of penalties for adaptive group lasso variable selection}
   \item{tol}{maximum tolerance for adaptive group lasso update}
   \item{max_iter}{maximum iteration for adaptive group lasso update}
+  \item{lam_min_ratio}{The ratio between the minimum and maximum penalties for adaptive group lasso}
+  \item{linear}{If TRUE, use linear approximation within each segments; otherwise use constant approximation}
+  \item{Knots}{If Knots is not c(), use the specify knots for fitting}
 }
 \value{
-  The function returns indices of the selected variables.
+ The function returns a list with the following components
+  \item{ind}{the selected variables}
+  \item{coef}{a function that returns the varying coefficient given conditioner}
+  \item{predict}{a function that returns the fitted values given predictors and conditioner} 
 }
 \references{
   See paper "Varying Coefficient Model via Adaptive Spline Fitting" for more details.

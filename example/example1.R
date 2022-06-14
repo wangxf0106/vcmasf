@@ -43,10 +43,12 @@ boundary = c(0, 20)
 fit1 = vcm.asf.onestep(data$X, data$y, data$u, boundary=boundary)
 fit2 = vcm.asf.twostep(data$X, data$y, data$u, boundary=boundary)
 fit3 = vcm.asf.equidistant(data$X, data$y, data$u, boundary=boundary)
+print(c(cor(data$y, fit1$predict(data$X, data$u)), cor(data$y, fit2$predict(data$X, data$u)), cor(data$y, fit3$predict(data$X, data$u))))
+
 B1 = fit1$coef(data$u)
 B2 = fit2$coef(data$u)
 B3 = fit3$coef(data$u)
-
+ind = order(data$u)
 par(mfrow=c(2, 2))
 for (i in 1:4) {
   plot(data$u[ind], data$B[ind, i], type='l', xlab='u', ylab=paste0('B', i))

@@ -6,9 +6,14 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // knots_selection_cpp
-NumericVector knots_selection_cpp(NumericMatrix X, NumericVector y, int m, double lam0);
-RcppExport SEXP _vcmasf_knots_selection_cpp(SEXP XSEXP, SEXP ySEXP, SEXP mSEXP, SEXP lam0SEXP) {
+NumericVector knots_selection_cpp(NumericMatrix X, NumericVector y, int m, double lam0, NumericVector Knots, NumericVector u);
+RcppExport SEXP _vcmasf_knots_selection_cpp(SEXP XSEXP, SEXP ySEXP, SEXP mSEXP, SEXP lam0SEXP, SEXP KnotsSEXP, SEXP uSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -16,13 +21,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
     Rcpp::traits::input_parameter< int >::type m(mSEXP);
     Rcpp::traits::input_parameter< double >::type lam0(lam0SEXP);
-    rcpp_result_gen = Rcpp::wrap(knots_selection_cpp(X, y, m, lam0));
+    Rcpp::traits::input_parameter< NumericVector >::type Knots(KnotsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(knots_selection_cpp(X, y, m, lam0, Knots, u));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_vcmasf_knots_selection_cpp", (DL_FUNC) &_vcmasf_knots_selection_cpp, 4},
+    {"_vcmasf_knots_selection_cpp", (DL_FUNC) &_vcmasf_knots_selection_cpp, 6},
     {NULL, NULL, 0}
 };
 

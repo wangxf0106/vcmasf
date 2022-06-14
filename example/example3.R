@@ -51,3 +51,36 @@ for (i in 2:dim(X)[2]) {
   lines(covid.environment$time, b_lag[,i], lty=2, xlab='time', ylab=paste0('beta', i), main=titles[i-1], xaxt='n')
   axis(side=1, at=xticks, labels=xticksshow)
 }
+
+# Use rolling window to predict covid case
+# rolling window size: at least 1 year, validation size: 1 week, roughly 0.02
+tmin = min(covid.environment$time)
+tmax = max(covid.environment$time)
+rolling = 365
+validation = 7
+end = tmin + rolling
+f = rep(0, length(y))
+f2 = rep(0, length(y))
+res = list()
+res2 = list()
+count = 1
+time = covid.environment$time
+while (end < tmax) {
+  ind0 = which(time < end)
+  ind1 = which((time >= end) & (time < end + validation))
+  Xtraining = X[ind0,]
+  utraining = u[ind0]
+  ytraining = y[ind0]
+  fit = vcm.asf.twostep(Xtraining, ytraining, utraining, boundary = c(min(covid.environment$t), max(u[ind1])))
+  fit2 = vcm.asf.equidistant(Xtraining, ytraining, utraining, boundary = c(min(covid.environment$t), max(u[ind1])))
+  Xtesting = X[ind1,]
+  utesting = u[ind1]
+  f[ind1] = fit$predict(Xtesting, utesting)
+  f2[ind1] = fit2$predict(Xtesting, utesting)
+  end = end + validation
+  print(unique(time[ind1]))
+}
+
+ind = which(time >= tmin + rolling)
+print(c(sqrt(mean((y[ind] - f[ind])^2)), sqrt(mean((y[ind] - f[ind])^2))))
+

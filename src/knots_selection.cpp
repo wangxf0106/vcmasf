@@ -17,6 +17,8 @@ using namespace arma;
 
 double log_res(float m, mat xx, colvec xy, double yy)
 {
+  if (det(xx) < 1e-10)
+    return (log(yy));
   double res = yy - as_scalar(trans(xy) * solve(xx, xy));
   return (log(res) - log(m));
 }
@@ -57,7 +59,7 @@ void M_cal(NumericVector* F, vector<int>* S, int p, double gamma)
 }
 
 // [[Rcpp::export]]
-NumericVector knots_selection_cpp(NumericMatrix X, NumericVector y, int m, double lam0)
+NumericVector knots_selection_cpp(NumericMatrix X, NumericVector y, int m, double lam0, NumericVector Knots, NumericVector u)
 {
   int n = X.nrow();
   int l = X.ncol();
@@ -82,18 +84,32 @@ NumericVector knots_selection_cpp(NumericMatrix X, NumericVector y, int m, doubl
     }
   }
   
-  int p = n / m;
+  int p;
+  if (m == 0)
+    p = Knots.size() + 1;
+  else  
+    p = n / m;
   NumericVector num(p+1, 0.0);
-  int r = n - p * m;
-  int ind = 0 ;
-  for (int i=1;i<p+1;i++) {
-    if (i <= r)
-      ind += m+1;
-    else
-      ind += m;
-    num[i] = ind;
+  if (m == 0) {
+    int ind = 0;
+    for (int i=0; i<n; i++) {
+      if (u[i] > Knots[ind]) {
+        num[ind] = i;
+        ind = ind + 1;
+      }
+      num[p] = n;
+    }
+  } else {
+    int r = n - p * m;
+    int ind = 0 ;
+    for (int i=1;i<p+1;i++) {
+      if (i <= r)
+        ind += m+1;
+      else
+        ind += m;
+      num[i] = ind;
+    }
   }
-  
   
   int len = p*(p+1)/2;
   NumericVector *ls = new NumericVector(len, 0.0);
@@ -104,7 +120,7 @@ NumericVector knots_selection_cpp(NumericMatrix X, NumericVector y, int m, doubl
   NumericVector Syy_simple(p+1);
   
   for (int i=1;i<p+1;i++) {
-    ind = int(num[i]);
+    int ind = int(num[i]);
     for (int k=0; k<l*l; k++)
       SXX_simple(i,k) = SXX(ind,k);
     for (int k=0; k<l; k++)
@@ -114,14 +130,14 @@ NumericVector knots_selection_cpp(NumericMatrix X, NumericVector y, int m, doubl
   
   for (int i=0; i<p; i++) {
     for (int j=i+1; j<p+1; j++){
-        mat xx(l, l);
-        colvec xy(l);
-        for (int k=0; k<l; k++) 
-          xy[k] = SXy_simple(j, k) - SXy_simple(i, k);
-        for (int k1=0; k1<l; k1++) 
-          for (int k2=0;k2<l; k2++)
-            xx(k1, k2) = SXX_simple(j, k1*l+k2) - SXX_simple(i, k1*l+k2);
-        (*ls)[index(p,i,j)] = -(num[j]-num[i])/2.0*log_res(num[j]-num[i], xx, xy, Syy_simple[j] - Syy_simple[i]);
+      mat xx(l, l);
+      colvec xy(l);
+      for (int k=0; k<l; k++) 
+        xy[k] = SXy_simple(j, k) - SXy_simple(i, k);
+      for (int k1=0; k1<l; k1++) 
+        for (int k2=0;k2<l; k2++)
+          xx(k1, k2) = SXX_simple(j, k1*l+k2) - SXX_simple(i, k1*l+k2);
+      (*ls)[index(p,i,j)] = -(num[j]-num[i])/2.0*log_res(num[j]-num[i], xx, xy, Syy_simple[j] - Syy_simple[i]);
     }
   }
   double lam = -lam0*log(n)/2;

@@ -7,7 +7,7 @@
 \usage{
 vcm.asf.onestep(X, y, u, ms = ceiling(sqrt(length(y))), 
                 lambda0s=seq(0.1, 10, 0.1), boundary=NULL, 
-		degree=3)
+                degree=3, linear=TRUE, Knots=c())
 }
 \arguments{
   \item{X}{a numeric matrix for predictors}
@@ -17,6 +17,8 @@ vcm.asf.onestep(X, y, u, ms = ceiling(sqrt(length(y))),
   \item{lambda0s}{a numeric vector for penalties}
   \item{boundary}{bounds for conditioner u to construct splines}
   \item{degree}{degree of splines}
+  \item{linear}{If TRUE, use linear approximation within each segments; otherwise use constant approximation}
+  \item{Knots}{If Knots is not c(), use the specify knots for fitting}
 }
 \value{
   The function returns a list with the following components
