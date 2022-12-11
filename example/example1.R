@@ -62,8 +62,10 @@ for (i in 1:4) {
 }
 dev.off()
 
-## Compare MSE for coefficients with 1000 repititions
-nrep = 1000
+## Compare MSE for coefficients with 10 repitition
+## The simulation is time consuming so we present only 10 repitition
+
+nrep = 10
 bmse1 = matrix(0, nrow=nrep, ncol=4)
 bmse2 = matrix(0, nrow=nrep, ncol=4)
 bmse3 = matrix(0, nrow=nrep, ncol=4)

@@ -44,9 +44,10 @@ example2 = function(n=50, ni=30, skip=0.6)
   return(list(y=y, X=X, u=u, f=f, B=B))
 }
 
-# Compare variable selection performance
+## Compare variable selection performance with 5 repitition
+## The simulation is time consuming so we present only 5 repitition
 ns = c(50, 100, 200)
-nrep = 200
+nrep = 5
 aglasso = array(0, dim=c(3, nrep, 500))
 boundary = c(0, 30)
 
