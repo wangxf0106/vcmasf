@@ -1,7 +1,9 @@
 library(vcmasf)
 library(mvtnorm)
 library(rdist)
+library(tvReg)
 
+## Generate simulation data for Section 4.1
 example1 = function(n=200, ni=20, skip=0.6) {
   f = c()
   y = c()
@@ -37,22 +39,73 @@ example1 = function(n=200, ni=20, skip=0.6) {
   }
   return(list(y=y, X=X, u=u, B=B, f=f))
 }
-  
+
+## Visualize the fitted coefficients by equidistant and predictor-specific method
 data = example1()
 boundary = c(0, 20)
-fit1 = vcm.asf.onestep(data$X, data$y, data$u, boundary=boundary)
-fit2 = vcm.asf.twostep(data$X, data$y, data$u, boundary=boundary)
-fit3 = vcm.asf.equidistant(data$X, data$y, data$u, boundary=boundary)
-print(c(cor(data$y, fit1$predict(data$X, data$u)), cor(data$y, fit2$predict(data$X, data$u)), cor(data$y, fit3$predict(data$X, data$u))))
-
+fit1 = vcm.asf.twostep(data$X, data$y, data$u, boundary=boundary)
+fit2 = vcm.asf.equidistant(data$X, data$y, data$u, boundary=boundary)
 B1 = fit1$coef(data$u)
 B2 = fit2$coef(data$u)
-B3 = fit3$coef(data$u)
-ind = order(data$u)
-par(mfrow=c(2, 2))
+par(mfrow=c(1,4), mar=c(4,2,2,1.5))
 for (i in 1:4) {
-  plot(data$u[ind], data$B[ind, i], type='l', xlab='u', ylab=paste0('B', i))
-  lines(data$u[ind], B1[ind, i], col='red')
-  lines(data$u[ind], B2[ind, i], col='blue')
-  lines(data$u[ind], B3[ind, i], col='green')
+  ind = order(data$u)
+  lower = min(B1[,i], B2[,i]) - 1
+  upper = max(B1[,i], B2[,i]) + 1
+  plot(data$u[ind], data$B[ind, i], lwd=2.0, type='l', xlab='u', ylab=paste0('B', i), ylim=c(lower, upper), main=paste0('beta', i))
+  grid(6, NA, col='grey', lwd = 2)
+  lines(data$u[ind], B1[ind, i], lty=3, lwd=2.0)
+  lines(data$u[ind], B2[ind, i], lty=2, lwd=2.0)
+  points(fit1$knots[[i]], rep(upper - 0.5, length(fit1$knots[[i]])), pch=8)
+  points(fit2$knots, rep(lower + 0.5, length(fit2$knots)), pch=6)
 }
+
+## Compare MSE for coefficients with 1000 repititions
+nrep = 1000
+bmse1 = matrix(0, nrow=nrep, ncol=4)
+bmse2 = matrix(0, nrow=nrep, ncol=4)
+bmse3 = matrix(0, nrow=nrep, ncol=4)
+bmse4 = matrix(0, nrow=nrep, ncol=4)
+nknot1 = rep(0, nrep)
+nknot2 = rep(0, nrep)
+nknot3 = matrix(0, nrow=nrep, ncol=4)
+
+for (i in 1:nrep)
+{
+  data = example1()
+  boundary = c(0, 20)
+  data_tvlm = data.frame(x1 = data$X[,1], x2 = data$X[,2], x3=data$X[,3], x4=data$X[,4], y=data$y)
+  coef_tvlm = coef(res_tvlm)
+  fit1 = vcm.asf.equidistant(data$X, data$y, data$u, boundary=boundary)
+  fit2 = vcm.asf.onestep(data$X, data$y, data$u, boundary=boundary)
+  fit3 = vcm.asf.twostep(data$X, data$y, data$u, boundary=boundary)
+  fit4 = tvLM(y ~ 0 + x1 + x2 + x3 + x4, z=data$u, data=data_tvlm)
+  B1 = fit1$coef(data$u)
+  B2 = fit2$coef(data$u)
+  B3 = fit3$coef(data$u)
+  bmse1[i, ] = colMeans((data$B - fit1$coef(data$u))^2)
+  bmse2[i, ] = colMeans((data$B - fit2$coef(data$u))^2)
+  bmse3[i, ] = colMeans((data$B - fit3$coef(data$u))^2)
+  bmse4[i, ] = colMeans((data$B - fit4$coefficients)^2)
+  nknot1[i] = length(fit1$knots)
+  nknot2[i] = length(fit2$knots)
+  nknot3[i, 1] = length(fit3$knots[[1]])
+  nknot3[i, 2] = length(fit3$knots[[2]])
+  nknot3[i, 3] = length(fit3$knots[[3]])
+  nknot3[i, 4] = length(fit3$knots[[4]])
+}
+
+brg = c(7, 10, 5.76, 6.7)
+## MSE for coefficients
+print(colMeans(bmse1) / brg^2 * 100)
+print(sqrt(colMeans(bmse1^2) - colMeans(bmse1)^2) / brg^2 * 100)
+print(colMeans(bmse2) / brg^2 * 100)
+print(sqrt(colMeans(bmse2^2) - colMeans(bmse2)^2) / brg^2 * 100)
+print(colMeans(bmse3) / brg^2 * 100)
+print(sqrt(colMeans(bmse3^2) - colMeans(bmse3)^2) / brg^2 * 100)
+print(colMeans(bmse4) / brg^2 * 100)
+print(sqrt(colMeans(bmse4^2) - colMeans(bmse4)^2) / brg^2 * 100)
+## Number of knots selected
+print(mean(nknot1))
+print(mean(nknot2))
+print(colMeans(nknot3))

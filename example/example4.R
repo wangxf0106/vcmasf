@@ -3,6 +3,8 @@ library(vcmasf)
 library(splines2)
 library(pracma)
 data("BostonHousing2")
+
+## Analyze Boston Housing data
 y = BostonHousing2$medv
 y = log(y)
 u = BostonHousing2$lstat
@@ -41,15 +43,16 @@ for (i in 1:7) {
   start = end + 1
 }
 
-par(mfrow=c(2, 4))
+# Visualize the confidence interval
+par(mfrow=c(2,4), mar=c(4,2,2,1.5))
 for (i in 1:7) {
   ind = order(u)
   coef = fit1$coef(u)[ind, i]
-  plot(u[ind], coef, main=features[i], type='l', xlab='lstat', ylab='coefficient', 
-       ylim=c(min(coef - 2 * sds[ind, i]), max(coef + 2 * sds[ind, i])))
-  lines(u[ind], coef - 2 * sds[ind, i], col='red')
-  lines(u[ind], coef + 2 * sds[ind, i], col='red')
-  lines(u[ind], rep(0, n), col='black', lty=2)
+  plot(u[ind], coef, main=features[i], type='l', xlab='transformed lstat', ylab='beta',
+       ylim=c(min(coef - 2 * sds[ind, i]), max(coef + 2 * sds[ind, i])), lwd=2)
+  lines(u[ind], coef - 2 * sds[ind, i], lty=3, lwd=2)
+  lines(u[ind], coef + 2 * sds[ind, i], lty=3, lwd=2)
+  lines(u[ind], rep(0, n), col='black', lty=2, lwd=2)
 }
 
 ## 10-fold cross-validation
@@ -70,5 +73,5 @@ for (i in 0:9) {
   f1[testing] = fit1$predict(X[testing, ], u[testing])
 }
 
+## Compare MSE between simple linear model and varying coefficient model
 print(c(mean((exp(y)-exp(f0))^2), mean((exp(y)-exp(f1))^2)))
-

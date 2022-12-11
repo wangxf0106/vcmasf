@@ -2,6 +2,7 @@ library(vcmasf)
 library(mvtnorm)
 library(rdist)
 
+# Generate simulation data for Section 4.2
 example2 = function(n=50, ni=30, skip=0.6) 
 {
   y = c()
@@ -43,17 +44,27 @@ example2 = function(n=50, ni=30, skip=0.6)
   return(list(y=y, X=X, u=u, f=f, B=B))
 }
 
-data = example2()
+# Compare variable selection performance
+ns = c(50, 100, 200)
+nrep = 200
+aglasso = array(0, dim=c(3, nrep, 500))
 boundary = c(0, 30)
-res = vcm.variable.selection(data$X, data$y, data$u, boundary=boundary)
-print(res$ind)
-print(cor(data$y, res$predict(data$X, data$u)))
 
-ntotal = length(res$ind)
-par(mfrow=c(ceiling(ntotal/3), 3))
-ind = order(data$u)
-B = res$coef(data$u)
-for (i in 1:ntotal) {
-  plot(data$u[ind], data$B[ind, res$ind[i]], type='l', xlab='u', ylab=paste0('B', i))
-  lines(data$u[ind], B[ind, i], col='red')
+for (i in 1:3) {
+  for (j in 1:nrep) {
+    data = example2(n=ns[i])
+    res = vcm.variable.selection(data$X, data$y, data$u, boundary=boundary)
+    aglasso[i, j, res$ind] = 1
+  }
 }
+
+## Number of selected inds
+print(c(mean(rowSums(aglasso[1,1:nrep,1:500])), mean(rowSums(aglasso[2,1:nrep,1:500])), mean(rowSums(aglasso[3,1:nrep,1:500]))))
+## Percentage of no false negative
+print(c(mean(rowSums(aglasso[1,1:nrep, 1:6]) == 6),
+        mean(rowSums(aglasso[2,1:nrep, 1:6]) == 6),
+        mean(rowSums(aglasso[3,1:nrep, 1:6]) == 6)))
+## Percentage of no false positive and negative
+print(c(mean((rowSums(aglasso[1,1:nrep, 1:6]) == 6) & (rowSums(aglasso[1,1:nrep,1:500]) == 6)),
+        mean((rowSums(aglasso[2,1:nrep, 1:6]) == 6) & (rowSums(aglasso[2,1:nrep,1:500]) == 6)),
+        mean((rowSums(aglasso[3,1:nrep, 1:6]) == 6) & (rowSums(aglasso[3,1:nrep,1:500]) == 6))))

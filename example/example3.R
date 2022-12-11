@@ -1,11 +1,10 @@
-# Application to COVID-19 case numbers and environmental factors dataset
 library(vcmasf)
 
-# Data preparation 
+## Analyze COVID-19 case numbers and environmental factors data
+## Data preparation 
 covid.environment[which(covid.environment$case_avg < 1), 'case_avg'] = 1
 covid.environment['log_case_avg'] = log(covid.environment['case_avg'])
 covid.environment['time'] = as.Date(covid.environment$time, format='%Y-%m-%d')
-cols = c('temp', 'wind', 'precipitation', 'humidity', 'pm25', 'ozone')
 covid.environment['year'] = unclass(as.POSIXlt(covid.environment$time))$year
 covid.environment['year'] = covid.environment['year'] - 120
 covid.environment['yday'] = unclass(as.POSIXlt(covid.environment$time))$yday 
@@ -13,74 +12,86 @@ covid.environment[which(covid.environment$year == 0), 'yday'] = covid.environmen
 covid.environment[which(covid.environment$year != 0), 'yday'] = covid.environment[which(covid.environment$year != 0), 'yday'] / 365
 covid.environment['t'] = covid.environment['year'] + covid.environment['yday']
 
-# Conditioner and predictors
+## Visualization of New York County data
+par(mfrow=c(2,4), mar=c(4,2,2,1.5))
+ny = covid.environment[covid.environment$county == "New York", ]
+cols = c("temp", "dew", "wind", "precipitation", "humidity", "pm25", "ozone")
+titles = c("temperature", "dew point", "wind speed", "precipitation", "humidity", "pm2.5", "ozone")
+for (i in 1:7) {
+  plot(ny$t, ny[[cols[i]]], main=titles[i], xlab='time', pch=46)
+}
+plot(ny$t, ny$case, main='Infected cases', xlab='time', pch=46)
+
+## Fit varying coefficient model
+## Conditioner and predictors
 u = covid.environment$t
+cols = c('temp', 'wind', 'precipitation', 'humidity', 'pm25', 'ozone')
 X = covid.environment[,cols]
 X = cbind(1, X)
 for (i in 2:dim(X)[2])
   X[,i] = (X[,i] - mean(X[,i])) / sd(X[,i])
 
-# Fit varying coefficient model 
+# Fit varying coefficient model and visualize
 y = covid.environment$log_case_avg
 fit = vcm.asf.twostep(X, y, u)
-
-# Fit varying coefficient model with lag = 4
-covid.environment[which(covid.environment$case_avg_next_4 < 1), 'case_avg_next_4'] = 1
-covid.environment['log_case_avg_next_4'] = log(covid.environment['case_avg_next_4'])
-y_lag = covid.environment$log_case_avg_next_4
-fit_lag = vcm.asf.twostep(X, y_lag, u)
-
-# Visualize coefficients
-X = X[order(u),]
-u = sort(u)
-b = fit$coef(u)
-b_lag = fit_lag$coef(u)
-xticks = seq(as.Date("2020-06-01", format='%Y-%m-%d'), as.Date("2021-06-30", format='%Y-%m-%d'), "6 months")
-xticksshow = c('2020-06', '2020-12', '2021-06')
-titles = c('temperature', 'dew point', 'wind speed', 'precipitation', 'humidity', 'pm2.5', 'ozone', 'Infected cases')
-par(mfrow=c(2, 4))
-lower = min(cbind(b[,1], b_lag[,1]))
-upper = max(cbind(b[,1], b_lag[,1]))
-plot(covid.environment$time, b[,1], type='l', xlab='time', ylab='beta1', main='intercept', xaxt='n', ylim=c(lower, upper))
-lines(covid.environment$time, b_lag[,1], lty=2, xlab='time', ylab=paste0('beta', i), main=titles[i-1], xaxt='n', )
-axis(side=1, at=xticks, labels=xticksshow)
-for (i in 2:dim(X)[2]) {
-  lower = min(cbind(b[,i], b_lag[,i]))
-  upper = max(cbind(b[,i], b_lag[,i]))
-  plot(covid.environment$time, b[,i], type='l', xlab='time', ylab=paste0('beta', i), main=titles[i-1], xaxt='n', ylim=c(lower, upper))
-  lines(covid.environment$time, b_lag[,i], lty=2, xlab='time', ylab=paste0('beta', i), main=titles[i-1], xaxt='n')
-  axis(side=1, at=xticks, labels=xticksshow)
+fit2 = vcm.asf.equidistant(X, y, u)
+B = fit$coef(u)
+B2 = fit2$coef(u)
+t = covid.environment$time
+titles = c('intercept', 'temperature', 'wind speed', 'precipitation',
+           'humidity', 'pm2.5', 'ozone')
+par(mfrow=c(2,4), mar=c(4,2,2,1.5))
+for (i in 1:7) {
+  ind = order(u)
+  lower = min(B[,i], B2[,i]) - 0.2
+  upper = max(B[,i], B2[,i]) + 0.2
+  plot(t[ind], B[ind, i], lwd=2.0, type='n', xlab='time', ylab=paste0('B', i), ylim=c(lower, upper), main=titles[i])
+  grid(6, NA, col='grey', lwd = 2)
+  lines(t[ind], B[ind, i], lwd=2)
+  lines(t[ind], B2[ind, i], lty=2, lwd=2)
 }
 
-# Use rolling window to predict covid case
-# rolling window size: at least 1 year, validation size: 1 week, roughly 0.02
-tmin = min(covid.environment$time)
-tmax = max(covid.environment$time)
-rolling = 365
+# Use rolling window to predict Covid cases
+# fitting window size: at least 1 year, validation size: 1 week
+tmin = as.Date("2021-02-28")
+tmax = as.Date("2021-09-30")
 validation = 7
-end = tmin + rolling
-f = rep(0, length(y))
-f2 = rep(0, length(y))
-res = list()
-res2 = list()
+start = tmin
+end = start + validation
+y = covid.environment$log_case_avg
+ypred = covid.environment[covid.environment$time > tmin, 'log_case_avg']
+f1 = c()
+f2 = c()
 count = 1
-time = covid.environment$time
-while (end < tmax) {
-  ind0 = which(time < end)
-  ind1 = which((time >= end) & (time < end + validation))
-  Xtraining = X[ind0,]
-  utraining = u[ind0]
-  ytraining = y[ind0]
-  fit = vcm.asf.twostep(Xtraining, ytraining, utraining, boundary = c(min(covid.environment$t), max(u[ind1])))
-  fit2 = vcm.asf.equidistant(Xtraining, ytraining, utraining, boundary = c(min(covid.environment$t), max(u[ind1])))
-  Xtesting = X[ind1,]
-  utesting = u[ind1]
-  f[ind1] = fit$predict(Xtesting, utesting)
-  f2[ind1] = fit2$predict(Xtesting, utesting)
+while (start <= tmax) {
+  training = which(covid.environment$time <= start)
+  testing = which((covid.environment$time > start) & (covid.environment$time <= end))
+  Xtraining = X[training,]
+  utraining = u[training]
+  ytraining = y[training]
+  Xtesting = X[testing,]
+  utesting = u[testing]
+  fit1 = vcm.asf.twostep(Xtraining, ytraining, utraining, boundary = c(min(utraining), max(utesting)))
+  fit2 = vcm.asf.equidistant(Xtraining, ytraining, utraining, boundary = c(min(utraining), max(utesting)))
+  f1 = c(f1, fit1$predict(Xtesting, utesting))
+  f2 = c(f2, fit2$predict(Xtesting, utesting))
+  start = start + validation
   end = end + validation
-  print(unique(time[ind1]))
+  count = count + 1
 }
+# MSE for equidistant and predictor-specific spline fitting
+print(c(mean((ypred - f2)^2), mean((ypred - f1)^2)))
 
-ind = which(time >= tmin + rolling)
-print(c(sqrt(mean((y[ind] - f[ind])^2)), sqrt(mean((y[ind] - f[ind])^2))))
-
+# Fit varying coefficient model with different lags and compare RMSE
+rmse = rep(0, 22)
+y = covid.environment$log_case_avg
+fit = vcm.asf.twostep(X, y, u)
+rmse[1] = sqrt(mean((y - fit$predict(X, u))^2))
+for (lag in 1:21) {
+  col = paste0('case_avg_next_', lag)
+  covid.environment[which(covid.environment[[col]] < 1), col] = 1
+  y = log(covid.environment[[col]])
+  fit = vcm.asf.twostep(X, y, u)
+  rmse[lag+1] = sqrt(mean((y - fit$predict(X, u))^2))
+}
+plot(seq(0,21,1), rmse, xlab='lag', ylab='RMSE', main='RMSE for different lags', type='l')

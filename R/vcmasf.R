@@ -1,4 +1,3 @@
-## Update the code so the repeat u values are in the same slice.
 knots.selection = function(X, y, u, ms = ceiling(sqrt(length(y))), lambda0 = 3.0, Knots=c()) {
   n = dim(X)[1]
   p = dim(X)[2]
