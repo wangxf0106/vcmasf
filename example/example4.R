@@ -44,16 +44,18 @@ for (i in 1:7) {
 }
 
 # Visualize the confidence interval
-par(mfrow=c(2,4), mar=c(4,2,2,1.5))
+png('boston_housing_20221210.png', width=460, height=230)
+par(mfrow=c(2,4), mar=c(4,2,2,1.5), ps=16, font.main=16)
 for (i in 1:7) {
   ind = order(u)
   coef = fit1$coef(u)[ind, i]
   plot(u[ind], coef, main=features[i], type='l', xlab='transformed lstat', ylab='beta',
-       ylim=c(min(coef - 2 * sds[ind, i]), max(coef + 2 * sds[ind, i])), lwd=2)
-  lines(u[ind], coef - 2 * sds[ind, i], lty=3, lwd=2)
-  lines(u[ind], coef + 2 * sds[ind, i], lty=3, lwd=2)
-  lines(u[ind], rep(0, n), col='black', lty=2, lwd=2)
+       ylim=c(min(coef - 2 * sds[ind, i]), max(coef + 2 * sds[ind, i])))
+  lines(u[ind], coef - 2 * sds[ind, i], lty=3)
+  lines(u[ind], coef + 2 * sds[ind, i], lty=3)
+  lines(u[ind], rep(0, n), col='black', lty=2)
 }
+dev.off()
 
 ## 10-fold cross-validation
 n = length(u)

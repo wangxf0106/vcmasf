@@ -47,18 +47,20 @@ fit1 = vcm.asf.predictor.specific(data$X, data$y, data$u, boundary=boundary)
 fit2 = vcm.asf.equidistant(data$X, data$y, data$u, boundary=boundary)
 B1 = fit1$coef(data$u)
 B2 = fit2$coef(data$u)
-par(mfrow=c(1,4), mar=c(4,2,2,1.5))
+png('example1_coefficient_20221210.png', width=460, height=115)
+par(mfrow=c(1,4), mar=c(4,2,2,1.5), ps=16, font.main=16)
 for (i in 1:4) {
   ind = order(data$u)
   lower = min(B1[,i], B2[,i]) - 1
   upper = max(B1[,i], B2[,i]) + 1
-  plot(data$u[ind], data$B[ind, i], lwd=2.0, type='l', xlab='u', ylab=paste0('B', i), ylim=c(lower, upper), main=paste0('beta', i))
-  grid(6, NA, col='grey', lwd = 2)
-  lines(data$u[ind], B1[ind, i], lty=3, lwd=2.0)
-  lines(data$u[ind], B2[ind, i], lty=2, lwd=2.0)
+  plot(data$u[ind], data$B[ind, i], type='l', xlab='u', ylab=paste0('B', i), ylim=c(lower, upper), main=paste0('beta', i))
+  grid(6, NA, col='grey')
+  lines(data$u[ind], B1[ind, i], lty=3)
+  lines(data$u[ind], B2[ind, i], lty=2)
   points(fit1$knots[[i]], rep(upper - 0.5, length(fit1$knots[[i]])), pch=8)
   points(fit2$knots, rep(lower + 0.5, length(fit2$knots)), pch=6)
 }
+dev.off()
 
 ## Compare MSE for coefficients with 1000 repititions
 nrep = 1000
