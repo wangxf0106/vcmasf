@@ -33,7 +33,7 @@ vcm.variable.selection(X, y, u, ms=ceiling(sqrt(length(y))),
   \item{predict}{a function that returns the fitted values given predictors and conditioner} 
 }
 \references{
-  See paper "Varying Coefficient Model via Adaptive Spline Fitting" for more details.
+  See paper \href{https://arxiv.org/abs/2201.10063}{Varying Coefficient Model via Adaptive Spline Fitting} for more details.
 }
 \examples{
   n = 500
@@ -44,7 +44,10 @@ vcm.variable.selection(X, y, u, ms=ceiling(sqrt(length(y))),
   B0[,1] = sin(u * 2 * pi)
   B0[,2] = cos(u * 2 * pi)
   y = rowSums(X * B0) + rnorm(n)
-  ind = vcm.variable.selection(X, y, u)
+  fit = vcm.variable.selection(X, y, u)
+  ind = fit$ind
+  B = fit$coef(u)
+  f = fit$predict(X, u)
 }
 \author{Xufei Wang}
 

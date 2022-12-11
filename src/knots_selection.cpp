@@ -1,4 +1,4 @@
-//  Created by xufeiwang on 21/12/19.
+//  Created by xufeiwang on 22/12/10.
 #include <cstdlib>
 #include <iostream>
 #include <RcppArmadillo.h>
@@ -156,3 +156,4 @@ NumericVector knots_selection_cpp(NumericMatrix X, NumericVector y, int m, doubl
   delete S;
   return (knots);
 }
+

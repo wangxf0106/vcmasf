@@ -20,7 +20,7 @@ The DESCRIPTION file:
 Maintainer: \packageMaintainer{vcmasf}
 }
 \references{
-  See paper "Varying Coefficient Model via Adaptive Spline Fitting" for more details.
+  See paper \href{https://arxiv.org/abs/2201.10063}{Varying Coefficient Model via Adaptive Spline Fitting} for more details.
 }
 \keyword{ package }
 

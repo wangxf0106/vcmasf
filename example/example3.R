@@ -33,9 +33,9 @@ for (i in 2:dim(X)[2])
 
 # Fit varying coefficient model and visualize
 y = covid.environment$log_case_avg
-fit = vcm.asf.twostep(X, y, u)
+fit1 = vcm.asf.predictor.specific(X, y, u)
 fit2 = vcm.asf.equidistant(X, y, u)
-B = fit$coef(u)
+B1 = fit1$coef(u)
 B2 = fit2$coef(u)
 t = covid.environment$time
 titles = c('intercept', 'temperature', 'wind speed', 'precipitation',
@@ -43,11 +43,11 @@ titles = c('intercept', 'temperature', 'wind speed', 'precipitation',
 par(mfrow=c(2,4), mar=c(4,2,2,1.5))
 for (i in 1:7) {
   ind = order(u)
-  lower = min(B[,i], B2[,i]) - 0.2
-  upper = max(B[,i], B2[,i]) + 0.2
-  plot(t[ind], B[ind, i], lwd=2.0, type='n', xlab='time', ylab=paste0('B', i), ylim=c(lower, upper), main=titles[i])
+  lower = min(B1[,i], B2[,i]) - 0.2
+  upper = max(B1[,i], B2[,i]) + 0.2
+  plot(t[ind], B1[ind, i], lwd=2.0, type='n', xlab='time', ylab=paste0('B', i), ylim=c(lower, upper), main=titles[i])
   grid(6, NA, col='grey', lwd = 2)
-  lines(t[ind], B[ind, i], lwd=2)
+  lines(t[ind], B1[ind, i], lwd=2)
   lines(t[ind], B2[ind, i], lty=2, lwd=2)
 }
 
@@ -71,7 +71,7 @@ while (start <= tmax) {
   ytraining = y[training]
   Xtesting = X[testing,]
   utesting = u[testing]
-  fit1 = vcm.asf.twostep(Xtraining, ytraining, utraining, boundary = c(min(utraining), max(utesting)))
+  fit1 = vcm.asf.predictor.specific(Xtraining, ytraining, utraining, boundary = c(min(utraining), max(utesting)))
   fit2 = vcm.asf.equidistant(Xtraining, ytraining, utraining, boundary = c(min(utraining), max(utesting)))
   f1 = c(f1, fit1$predict(Xtesting, utesting))
   f2 = c(f2, fit2$predict(Xtesting, utesting))
@@ -85,13 +85,13 @@ print(c(mean((ypred - f2)^2), mean((ypred - f1)^2)))
 # Fit varying coefficient model with different lags and compare RMSE
 rmse = rep(0, 22)
 y = covid.environment$log_case_avg
-fit = vcm.asf.twostep(X, y, u)
+fit = vcm.asf.predictor.specific(X, y, u)
 rmse[1] = sqrt(mean((y - fit$predict(X, u))^2))
 for (lag in 1:21) {
   col = paste0('case_avg_next_', lag)
   covid.environment[which(covid.environment[[col]] < 1), col] = 1
   y = log(covid.environment[[col]])
-  fit = vcm.asf.twostep(X, y, u)
+  fit = vcm.asf.predictor.specific(X, y, u)
   rmse[lag+1] = sqrt(mean((y - fit$predict(X, u))^2))
 }
 plot(seq(0,21,1), rmse, xlab='lag', ylab='RMSE', main='RMSE for different lags', type='l')

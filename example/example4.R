@@ -19,7 +19,7 @@ for (i in 1:6) {
 X = cbind(1, X)
 features = c("int", 'crim', 'rm', 'ptratio', 'nox', 'tax', 'age')
 degree = 3
-fit1 = vcm.asf.twostep(X, y, u, degree=degree, boundary=c(0, 1))
+fit1 = vcm.asf.predictor.specific(X, y, u, degree=degree, boundary=c(0, 1))
 
 ## Get confidence interval for the varying coefficients
 n = length(y)
@@ -65,7 +65,7 @@ for (i in 0:9) {
   training = which(folds != i)
   testing = which(folds == i)
   fit0 = lm(y[training] ~ X[training, 2] + X[training, 3] + X[training, 4] + X[training, 5] + X[training, 6] + X[training, 7] + u[training])
-  fit1 = vcm.asf.twostep(X[training, ], y[training], u[training], degree=degree, boundary=c(0, 1))
+  fit1 = vcm.asf.predictor.specific(X[training, ], y[training], u[training], degree=degree, boundary=c(0, 1))
   for (k in 1:7) {
     f0[testing] = f0[testing] + X[testing, k] * fit0$coefficients[k]
   }
@@ -73,5 +73,5 @@ for (i in 0:9) {
   f1[testing] = fit1$predict(X[testing, ], u[testing])
 }
 
-## Compare MSE between simple linear model and varying coefficient model
+## Compare MSE between simple linear model and predictor-specific varying coefficient model
 print(c(mean((exp(y)-exp(f0))^2), mean((exp(y)-exp(f1))^2)))

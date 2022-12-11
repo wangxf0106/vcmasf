@@ -58,7 +58,7 @@ for (i in 1:3) {
   }
 }
 
-## Number of selected inds
+## Number of selected features
 print(c(mean(rowSums(aglasso[1,1:nrep,1:500])), mean(rowSums(aglasso[2,1:nrep,1:500])), mean(rowSums(aglasso[3,1:nrep,1:500]))))
 ## Percentage of no false negative
 print(c(mean(rowSums(aglasso[1,1:nrep, 1:6]) == 6),
@@ -68,3 +68,4 @@ print(c(mean(rowSums(aglasso[1,1:nrep, 1:6]) == 6),
 print(c(mean((rowSums(aglasso[1,1:nrep, 1:6]) == 6) & (rowSums(aglasso[1,1:nrep,1:500]) == 6)),
         mean((rowSums(aglasso[2,1:nrep, 1:6]) == 6) & (rowSums(aglasso[2,1:nrep,1:500]) == 6)),
         mean((rowSums(aglasso[3,1:nrep, 1:6]) == 6) & (rowSums(aglasso[3,1:nrep,1:500]) == 6))))
+

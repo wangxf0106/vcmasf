@@ -43,7 +43,7 @@ example1 = function(n=200, ni=20, skip=0.6) {
 ## Visualize the fitted coefficients by equidistant and predictor-specific method
 data = example1()
 boundary = c(0, 20)
-fit1 = vcm.asf.twostep(data$X, data$y, data$u, boundary=boundary)
+fit1 = vcm.asf.predictor.specific(data$X, data$y, data$u, boundary=boundary)
 fit2 = vcm.asf.equidistant(data$X, data$y, data$u, boundary=boundary)
 B1 = fit1$coef(data$u)
 B2 = fit2$coef(data$u)
@@ -77,8 +77,8 @@ for (i in 1:nrep)
   data_tvlm = data.frame(x1 = data$X[,1], x2 = data$X[,2], x3=data$X[,3], x4=data$X[,4], y=data$y)
   coef_tvlm = coef(res_tvlm)
   fit1 = vcm.asf.equidistant(data$X, data$y, data$u, boundary=boundary)
-  fit2 = vcm.asf.onestep(data$X, data$y, data$u, boundary=boundary)
-  fit3 = vcm.asf.twostep(data$X, data$y, data$u, boundary=boundary)
+  fit2 = vcm.asf.global(data$X, data$y, data$u, boundary=boundary)
+  fit3 = vcm.asf.predictor.specific(data$X, data$y, data$u, boundary=boundary)
   fit4 = tvLM(y ~ 0 + x1 + x2 + x3 + x4, z=data$u, data=data_tvlm)
   B1 = fit1$coef(data$u)
   B2 = fit2$coef(data$u)
@@ -96,16 +96,23 @@ for (i in 1:nrep)
 }
 
 brg = c(7, 10, 5.76, 6.7)
-## MSE for coefficients
+## MSE for coefficient
+## Equidistant spline fitting
 print(colMeans(bmse1) / brg^2 * 100)
 print(sqrt(colMeans(bmse1^2) - colMeans(bmse1)^2) / brg^2 * 100)
+## Global adaptive spline fitting
 print(colMeans(bmse2) / brg^2 * 100)
 print(sqrt(colMeans(bmse2^2) - colMeans(bmse2)^2) / brg^2 * 100)
+## Predictor-specific adaptive spline fitting
 print(colMeans(bmse3) / brg^2 * 100)
 print(sqrt(colMeans(bmse3^2) - colMeans(bmse3)^2) / brg^2 * 100)
+## Kernel fitting
 print(colMeans(bmse4) / brg^2 * 100)
 print(sqrt(colMeans(bmse4^2) - colMeans(bmse4)^2) / brg^2 * 100)
 ## Number of knots selected
+## Equidistant spline fitting
 print(mean(nknot1))
+## Global adaptive spline fitting
 print(mean(nknot2))
+## Predictor-specific adaptive spline fitting
 print(colMeans(nknot3))

@@ -1,13 +1,13 @@
-\name{vcm.asf.onestep}
-\alias{vcm.asf.onestep}
-\title{One-step spline fitting with adaptive knots selection}
+\name{vcm.asf.predictor.specific}
+\alias{vcm.asf.predictor.specific}
+\title{Predictor-specific spline fitting with adaptive knots selection}
 \description{
-  This function estimates the varying coefficient by one-step spline fitting with adaptive knots selection.
+  This function estimates the varying coefficient by predictor-specific spline fitting with adaptive knots selection.
 }
 \usage{
-vcm.asf.onestep(X, y, u, ms = ceiling(sqrt(length(y))), 
-                lambda0s=seq(0.1, 10, 0.1), boundary=NULL, 
-                degree=3, linear=TRUE, Knots=c())
+vcm.asf.predictor.specific(X, y, u, ms = ceiling(sqrt(length(y))), 
+		lambda0s=seq(0.1, 10, 0.1), boundary=NULL, 
+		degree=3, max_iter=100, linear=TRUE, Knots=c())
 }
 \arguments{
   \item{X}{a numeric matrix for predictors}
@@ -17,6 +17,7 @@ vcm.asf.onestep(X, y, u, ms = ceiling(sqrt(length(y))),
   \item{lambda0s}{a numeric vector for penalties}
   \item{boundary}{bounds for conditioner u to construct splines}
   \item{degree}{degree of splines}
+  \item{max_iter}{maximum iteration for predictor-specific update}
   \item{linear}{If TRUE, use linear approximation within each segments; otherwise use constant approximation}
   \item{Knots}{If Knots is not c(), use the specify knots for fitting}
 }
@@ -28,7 +29,7 @@ vcm.asf.onestep(X, y, u, ms = ceiling(sqrt(length(y))),
   
 }
 \references{
-  See paper "Varying Coefficient Model via Adaptive Spline Fitting" for more details.
+  See paper \href{https://arxiv.org/abs/2201.10063}{Varying Coefficient Model via Adaptive Spline Fitting} for more details.
 }
 \examples{
   n = 500
@@ -39,7 +40,7 @@ vcm.asf.onestep(X, y, u, ms = ceiling(sqrt(length(y))),
   B0[,1] = sin(u * 2 * pi)
   B0[,2] = cos(u * 2 * pi)
   y = rowSums(X * B0) + rnorm(n)
-  fit = vcm.asf.onestep(X, y, u)
+  fit = vcm.asf.predictor.specific(X, y, u)
   B = fit$coef(u)
   f = fit$predict(X, u)
 }

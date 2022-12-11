@@ -33,7 +33,7 @@ knots.selection = function(X, y, u, ms = ceiling(sqrt(length(y))), lambda0 = 3.0
   return (knots)
 }
 
-vcm.asf.onestep <- function(X, y, u, ms = ceiling(sqrt(length(y))), lambda0s=seq(0.1, 10, 0.1), boundary=NULL, degree=3, linear=TRUE, Knots=c())
+vcm.asf.global <- function(X, y, u, ms = ceiling(sqrt(length(y))), lambda0s=seq(0.1, 10, 0.1), boundary=NULL, degree=3, linear=TRUE, Knots=c())
 {
   if (is.null(boundary)) 
     boundary = range(u)
@@ -86,9 +86,9 @@ vcm.asf.onestep <- function(X, y, u, ms = ceiling(sqrt(length(y))), lambda0s=seq
   return(list(knots=knots, predict=predict, coef=coef))
 }
 
-vcm.asf.twostep = function(X, y, u, ms = ceiling(sqrt(length(y))), lambda0s=seq(0.1, 10, 0.1), boundary=NULL, degree=3, max_iter=100, linear=TRUE, Knots=c()) {
+vcm.asf.predictor.specific = function(X, y, u, ms = ceiling(sqrt(length(y))), lambda0s=seq(0.1, 10, 0.1), boundary=NULL, degree=3, max_iter=100, linear=TRUE, Knots=c()) {
   Knots_orig = Knots
-  res = vcm.asf.onestep(X, y, u, ms, lambda0s, boundary, degree, linear=linear, Knots_orig)
+  res = vcm.asf.global(X, y, u, ms, lambda0s, boundary, degree, linear=linear, Knots_orig)
   coef = res$coef(u)
   if (is.null(boundary)) 
     boundary = range(u)
@@ -128,7 +128,7 @@ vcm.asf.twostep = function(X, y, u, ms = ceiling(sqrt(length(y))), lambda0s=seq(
       prev = c()
       for (lambda0 in lambda0s)
       {
-        tmp = vcm.asf.onestep(matrix(X[,j], ncol=1), residual, u, ms, c(lambda0), boundary, degree, linear=linear, Knots=Knots_orig) 
+        tmp = vcm.asf.global(matrix(X[,j], ncol=1), residual, u, ms, c(lambda0), boundary, degree, linear=linear, Knots=Knots_orig) 
         if (length(prev) == length(tmp$knots)) {
           if (sum((prev - tmp$knots)^2) == 0)
             next
@@ -272,7 +272,7 @@ knots.selection.marginal = function(X, y, u, ms=ceiling(sqrt(length(y))), lambda
   nums = rep(0, p)
   for (i in 1:p) 
   {
-    tmp = vcm.asf.onestep(matrix(X[,i], ncol=1), y, u, ms, lambda0s, boundary, degree, linear=linear, Knots=Knots_orig)
+    tmp = vcm.asf.global(matrix(X[,i], ncol=1), y, u, ms, lambda0s, boundary, degree, linear=linear, Knots=Knots_orig)
     nums[i] = length(tmp$knots)
     if (nums[i] > 0)
       Knots[i, 1:nums[i]] = tmp$knots

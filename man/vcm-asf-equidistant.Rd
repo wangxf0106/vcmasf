@@ -5,7 +5,7 @@
   This function estimates the varying coefficient by spline fitting with equidistant knots.
 }
 \usage{
-vcm.asf.onestep(X, y, u, nknots=seq(1, 9), boundary=NULL, degree=3)
+vcm.asf.equidistant(X, y, u, nknots=seq(1, 9), boundary=NULL, degree=3)
 }
 \arguments{
   \item{X}{a numeric matrix for predictors}
@@ -23,7 +23,7 @@ vcm.asf.onestep(X, y, u, nknots=seq(1, 9), boundary=NULL, degree=3)
   
 }
 \references{
-  See paper "Varying Coefficient Model via Adaptive Spline Fitting" for more details.
+  See paper \href{https://arxiv.org/abs/2201.10063}{Varying Coefficient Model via Adaptive Spline Fitting} for more details.
 }
 \examples{
   n = 500

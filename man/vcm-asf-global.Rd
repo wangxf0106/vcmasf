@@ -1,13 +1,13 @@
-\name{vcm.asf.twostep}
-\alias{vcm.asf.twostep}
-\title{Two-step spline fitting with adaptive knots selection}
+\name{vcm.asf.global}
+\alias{vcm.asf.global}
+\title{Global spline fitting with adaptive knots selection}
 \description{
-  This function estimates the varying coefficient by two-step spline fitting with adaptive knots selection.
+  This function estimates the varying coefficient by global spline fitting with adaptive knots selection.
 }
 \usage{
-vcm.asf.twostep(X, y, u, ms = ceiling(sqrt(length(y))), 
-		lambda0s=seq(0.1, 10, 0.1), boundary=NULL, 
-		degree=3, max_iter=100, linear=TRUE, Knots=c())
+vcm.asf.global(X, y, u, ms = ceiling(sqrt(length(y))), 
+                lambda0s=seq(0.1, 10, 0.1), boundary=NULL, 
+                degree=3, linear=TRUE, Knots=c())
 }
 \arguments{
   \item{X}{a numeric matrix for predictors}
@@ -17,7 +17,6 @@ vcm.asf.twostep(X, y, u, ms = ceiling(sqrt(length(y))),
   \item{lambda0s}{a numeric vector for penalties}
   \item{boundary}{bounds for conditioner u to construct splines}
   \item{degree}{degree of splines}
-  \item{max_iter}{maximum iteration for two-step update}
   \item{linear}{If TRUE, use linear approximation within each segments; otherwise use constant approximation}
   \item{Knots}{If Knots is not c(), use the specify knots for fitting}
 }
@@ -29,7 +28,7 @@ vcm.asf.twostep(X, y, u, ms = ceiling(sqrt(length(y))),
   
 }
 \references{
-  See paper "Varying Coefficient Model via Adaptive Spline Fitting" for more details.
+  See paper \href{https://arxiv.org/abs/2201.10063}{Varying Coefficient Model via Adaptive Spline Fitting} for more details.
 }
 \examples{
   n = 500
@@ -40,7 +39,7 @@ vcm.asf.twostep(X, y, u, ms = ceiling(sqrt(length(y))),
   B0[,1] = sin(u * 2 * pi)
   B0[,2] = cos(u * 2 * pi)
   y = rowSums(X * B0) + rnorm(n)
-  fit = vcm.asf.twostep(X, y, u)
+  fit = vcm.asf.global(X, y, u)
   B = fit$coef(u)
   f = fit$predict(X, u)
 }
