@@ -30,8 +30,10 @@ u = covid.environment$t
 cols = c('temp', 'wind', 'precipitation', 'humidity', 'pm25', 'ozone')
 X = covid.environment[,cols]
 X = cbind(1, X)
-for (i in 2:dim(X)[2])
+for (i in 2:dim(X)[2]) {
   X[,i] = (X[,i] - mean(X[,i])) / sd(X[,i])
+  X[,i] = pmax(-3, pmin(3, X[,i]))
+}
 
 # Fit varying coefficient model and visualize
 y = covid.environment$log_case_avg
